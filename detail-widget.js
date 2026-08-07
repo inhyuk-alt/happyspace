@@ -105,7 +105,7 @@
   // [새 메뉴 템플릿] 이 새 메뉴용 "programs" 시트(교육프로그램 시트와는 별개)를 파일 → 웹에
   // 게시(CSV)한 다음 나온 주소로 바꿔넣으세요. 시트를 재게시해서 주소가 바뀌면 여기 한 곳만
   // 고치면 이 메뉴의 모든 페이지에 전부 반영됨
-  var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQSJc7a_m0m9OFAyuUY9UbUkK-BscmJKvMa1cHsHMYlWP3UBa8kNybh528WC2KpkNXsMWaILtnexIEb/pub?gid=1937397128&single=true&output=csv';
+  var SHEET_CSV_URL = '여기에_새_상세페이지_시트를_CSV로_게시한_주소를_붙여넣으세요';
 
   // 페이지별 프로그램 ID는 각 코드위젯에서 window.PROGRAM_ID로 미리 선언해둠
   var PROGRAM_ID = window.PROGRAM_ID || '';
@@ -116,24 +116,22 @@
   // (카테고리 색상표, 텍스트 블록 글자크기/줄간격 값이 여기 다 들어있음)
   /* === LAYOUT_SETTINGS_START === */
   var CATEGORY_STYLE_MAP = {
-  '강연': { bg: '#fff3d0', line: '#C28E4C', text: '#2C2A29' },
-  '로망스쿨': { bg: '#e8f8f8', line: '#2F3640', text: '#A5C4D4' },
-  '행복아지트': { bg: '#fec5e8', line: '#18a8f1', text: '#3e3e3e' }
-};
+    '예시 카테고리': { bg: '#eeeeee', line: '#999999', text: '#666666' }
+  };
 
-var TEXT_FONT_SIZE_MAP = {
-  small: '14px',
-  medium: '16px',
-  large: '19px',
-  xlarge: '22px'
-};
+  var TEXT_FONT_SIZE_MAP = {
+    small: '14px',
+    medium: '16px',
+    large: '19px',
+    xlarge: '22px'
+  };
 
-var TEXT_LINE_HEIGHT_MAP = {
-  wider: '2.4',
-  normal: '1.7',
-  wide: '2.0',
-  tight: '1.4'
-};
+  var TEXT_LINE_HEIGHT_MAP = {
+    tight: '1.4',
+    normal: '1.7',
+    wide: '2.0',
+    wider: '2.4'
+  };
   /* === LAYOUT_SETTINGS_END === */
 
   var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -771,13 +769,56 @@ var TEXT_LINE_HEIGHT_MAP = {
     if (cell && typeof cell === 'object') {
       return {
         text: cell.text || '',
+        // [표 서식] 관리 화면에서 셀을 워드처럼 직접 편집(굵게/기울임/색 등)한 결과물.
+        // 있으면 이 값을 최우선으로 그대로 그리고, 없으면(예전 데이터) text를 씀
+        html: cell.html || '',
+        bg: cell.bg || '',
         rowspan: cell.rowspan || 1,
         colspan: cell.colspan || 1,
         hidden: !!cell.hidden
       };
     }
 
-    return { text: cell || '', rowspan: 1, colspan: 1, hidden: false };
+    return { text: cell || '', html: '', bg: '', rowspan: 1, colspan: 1, hidden: false };
+  }
+
+  // [표 - 줄바꿈] 셀 안에 실수로 들어간 줄바꿈(Alt+Enter, 복사 과정에서 우연히 생긴 것 등)은
+  // 전부 무시하고 공백으로 합쳐버립니다. 그 대신 셀 안에 "|" 기호를 직접 입력한 자리에서만
+  // 실제로 줄을 바꿉니다. 예전에는 실제 줄바꿈이 있으면 CSS(white-space: pre-line)가 그걸
+  // 그대로 살리는 동시에 폭이 좁으면 자동 줄바꿈도 같이 일어나서, 의도한 줄바꿈과 자동
+  // 줄바꿈이 겹쳐 어색해 보이는 문제가 있었음 — 이제는 "|" 로 표시한 곳만 강제 줄바꿈이고
+  // 나머지는 전부 자연스러운 자동 줄바꿈 하나만 적용됨.
+  function fillTableCell_(td, rawText) {
+    var flattened = String(rawText == null ? '' : rawText)
+      .replace(/\r\n|\r|\n/g, ' ') // 실수로 들어간 줄바꿈 → 공백으로 합침
+      .replace(/[ \t]+/g, ' '); // 중복 공백 정리
+
+    var parts = flattened.split('|').map(function (part) {
+      return part.trim();
+    });
+
+    parts.forEach(function (part, index) {
+      if (index > 0) {
+        td.appendChild(document.createElement('br')); // "|" 자리에서만 강제 줄바꿈
+      }
+      td.appendChild(document.createTextNode(part));
+    });
+  }
+
+  // [표 서식] 셀 하나를 채움. html(관리 화면에서 워드처럼 직접 편집한 서식 있는 내용)이
+  // 있으면 그걸 그대로 신뢰해서 그리고(다른 텍스트 블록·도식 요소와 동일한 방식),
+  // 없으면(예전 데이터, 또는 서식 편집을 아직 안 한 셀) 예전 방식(text + "|" 줄바꿈)으로 그림.
+  // bg가 있으면 셀 배경색도 같이 입힘.
+  function fillTableCellRich_(td, cell) {
+    if (cell.html) {
+      td.innerHTML = cell.html;
+    } else {
+      fillTableCell_(td, cell.text);
+    }
+
+    if (cell.bg) {
+      td.style.backgroundColor = cell.bg;
+    }
   }
 
   // [표] 요소 하나를 실제 <table>로 만듦 (rowspan/colspan으로 합쳐진 칸 반영)
@@ -788,7 +829,9 @@ var TEXT_LINE_HEIGHT_MAP = {
     });
 
     var hasHeaderContent = headers.some(function (h) { return h && h.trim(); });
-    var hasRowContent = rows.some(function (r) { return r.some(function (c) { return c.text && c.text.trim(); }); });
+    var hasRowContent = rows.some(function (r) {
+      return r.some(function (c) { return (c.text && c.text.trim()) || (c.html && c.html.trim()); });
+    });
 
     if (!hasHeaderContent && !hasRowContent) {
       return null;
@@ -804,7 +847,7 @@ var TEXT_LINE_HEIGHT_MAP = {
 
       for (var h = 0; h < headers.length; h += 1) {
         var th = document.createElement('th');
-        th.textContent = headers[h];
+        fillTableCell_(th, headers[h]);
         headRow.appendChild(th);
       }
 
@@ -825,7 +868,7 @@ var TEXT_LINE_HEIGHT_MAP = {
         }
 
         var td = document.createElement('td');
-        td.textContent = cell.text;
+        fillTableCellRich_(td, cell);
 
         if (cell.rowspan > 1) {
           td.rowSpan = cell.rowspan;

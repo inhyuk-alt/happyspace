@@ -211,7 +211,13 @@
       return String(h || '').trim().toLowerCase();
     });
 
-    var idIndex = header.indexOf('id');
+    var idIndex = -1;
+for (var hIdx = 0; hIdx < header.length; hIdx += 1) {
+  if (header[hIdx].replace(/[^a-z]/g, '') === 'id') {
+    idIndex = hIdx;
+    break;
+  }
+}
 
     if (idIndex === -1) {
       return null;

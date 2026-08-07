@@ -1131,12 +1131,15 @@
       })
       .then(function (text) {
         var rows = parseCsv(text);
-        var program = findProgramRow(rows);
+console.log('파싱된 행 개수:', rows.length, rows);
+var program = findProgramRow(rows);
+console.log('찾은 program:', program);
 
-        if (!program || !isTruthy(program.visible)) {
-          renderError(root);
-          return;
-        }
+if (!program || !isTruthy(program.visible)) {
+  console.log('실패 이유 — program:', program, '/ visible값:', program && program.visible);
+  renderError(root);
+  return;
+}
 
         var data = { regions: [], info: {}, subtitleLabel: '', subtitleText: '' };
 

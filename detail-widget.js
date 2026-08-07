@@ -117,7 +117,8 @@
   /* === LAYOUT_SETTINGS_START === */
   var CATEGORY_STYLE_MAP = {
   '강연': { bg: '#fff3d0', line: '#C28E4C', text: '#2C2A29' },
-  '로망스쿨': { bg: '#e8f8f8', line: '#2F3640', text: '#A5C4D4' }
+  '로망스쿨': { bg: '#e8f8f8', line: '#2F3640', text: '#A5C4D4' },
+  '행복아지트': { bg: '#fec5e8', line: '#18a8f1', text: '#3e3e3e' }
 };
 
 var TEXT_FONT_SIZE_MAP = {

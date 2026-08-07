@@ -105,7 +105,7 @@
   // [새 메뉴 템플릿] 이 새 메뉴용 "programs" 시트(교육프로그램 시트와는 별개)를 파일 → 웹에
   // 게시(CSV)한 다음 나온 주소로 바꿔넣으세요. 시트를 재게시해서 주소가 바뀌면 여기 한 곳만
   // 고치면 이 메뉴의 모든 페이지에 전부 반영됨
-  var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQSJc7a_m0m9OFAyuUY9UbUkK-BscmJKvMa1cHsHMYlWP3UBa8kNybh528WC2KpkNXsMWaILtnexIEb/pub?gid=1937397128&single=true&output=csv';
+  var SHEET_CSV_URL = '여기에_새_상세페이지_시트를_CSV로_게시한_주소를_붙여넣으세요';
 
   // 페이지별 프로그램 ID는 각 코드위젯에서 window.PROGRAM_ID로 미리 선언해둠
   var PROGRAM_ID = window.PROGRAM_ID || '';
@@ -1184,6 +1184,28 @@
     if (!root) {
       console.error('[진단] .iw-detail-card 요소를 DOM에서 찾지 못함 → 여기서 중단. 코드위젯 HTML이 페이지에 실제로 삽입됐는지 확인 필요.');
       return;
+    }
+
+    // [핵심 수정] window.PROGRAM_ID는 별도 <script> 태그가 실행돼야 값이 채워지는데,
+    // 아임웹 코드위젯 환경에서는 인라인 스크립트와 외부 스크립트(src)의 실행 순서가
+    // 문서에 쓴 순서대로 보장되지 않는 경우가 있습니다 (특히 detail-widget.js가
+    // 브라우저 캐시에 있어서 거의 즉시 실행될 때). 그래서 window.PROGRAM_ID가
+    // 아직 안 채워진 시점에 이 스크립트가 먼저 실행되면 PROGRAM_ID가 빈 값이 됩니다.
+    //
+    // 이를 근본적으로 막기 위해, div 자체의 data-program-id 속성을 최우선으로 읽습니다.
+    // HTML 속성은 이 div가 파싱되는 순간 이미 존재하므로 스크립트 실행 순서와 무관합니다.
+    // (구버전 코드위젯과의 호환을 위해 window.PROGRAM_ID도 계속 보조 수단으로 지원합니다.)
+    var domProgramId = root.getAttribute('data-program-id');
+    console.log('[진단] div의 data-program-id 속성값:', JSON.stringify(domProgramId));
+
+    if (domProgramId && domProgramId.trim() && domProgramId.indexOf('여기에_') !== 0) {
+      PROGRAM_ID = domProgramId.trim();
+      console.log('[진단] data-program-id 속성값을 PROGRAM_ID로 사용:', JSON.stringify(PROGRAM_ID));
+    } else if (window.PROGRAM_ID) {
+      PROGRAM_ID = String(window.PROGRAM_ID).trim();
+      console.log('[진단] data-program-id가 없어 window.PROGRAM_ID를 대신 사용 (구버전 방식):', JSON.stringify(PROGRAM_ID));
+    } else {
+      console.error('[진단] data-program-id 속성도, window.PROGRAM_ID도 둘 다 비어있음. 코드위젯 HTML에 둘 중 하나는 반드시 있어야 합니다.');
     }
 
     // [미리보기] 관리 화면에서 내려받은 미리보기 파일은 구글 시트를 거치지 않고

@@ -1150,7 +1150,8 @@
 
         renderProgram(root, program, data);
       })
-      .catch(function () {
+     .catch(function (err) {
+        console.error('상세페이지 렌더링 실패:', err);
         renderError(root);
       });
   }

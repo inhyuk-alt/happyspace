@@ -105,7 +105,7 @@
   // [새 메뉴 템플릿] 이 새 메뉴용 "programs" 시트(교육프로그램 시트와는 별개)를 파일 → 웹에
   // 게시(CSV)한 다음 나온 주소로 바꿔넣으세요. 시트를 재게시해서 주소가 바뀌면 여기 한 곳만
   // 고치면 이 메뉴의 모든 페이지에 전부 반영됨
-  var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1aStYpGST9nwJN_diNHVZc8BQcgJtDuSvzFP03kMKTp0/gviz/tq?tqx=out:csv&gid=1937397128';
+  var SHEET_CSV_URL = '여기에_새_상세페이지_시트를_CSV로_게시한_주소를_붙여넣으세요';
 
   // 페이지별 프로그램 ID는 각 코드위젯에서 window.PROGRAM_ID로 미리 선언해둠
   var PROGRAM_ID = window.PROGRAM_ID || '';
@@ -147,6 +147,13 @@
 
   // 큰따옴표로 감싼 값 안의 콤마/줄바꿈까지 처리하는 CSV 파서 (목록 위젯과 동일)
   function parseCsv(text) {
+    // [진단/방어] 맨 앞에 BOM(\uFEFF)이 붙어오는 경우를 대비해 항상 제거하고 시작.
+    // (원인이 아니었더라도 있어서 해될 것 없음)
+    if (text.charCodeAt(0) === 0xfeff) {
+      console.log('[진단] parseCsv: 텍스트 맨 앞에 BOM 발견 → 제거함');
+      text = text.slice(1);
+    }
+
     var rows = [];
     var row = [];
     var field = '';
@@ -201,39 +208,104 @@
     return normalized === 'true' || normalized === '1' || normalized === 'y' || normalized === 'yes';
   }
 
+  // [진단용] 눈에 안 보이는 문자(제로폭 공백, BOM, NBSP 등)를 모두 제거하고
+  // 앞뒤 공백까지 지운 뒤 비교하기 위한 정규화 함수. id 비교가 계속 실패할 때
+  // 원인이 "눈에 안 보이는 문자"인 경우를 방어하기 위해 추가함.
+  function normalizeForCompare_(value) {
+    return String(value == null ? '' : value)
+      .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, '') // 제로폭 공백류, BOM, NBSP 제거
+      .trim();
+  }
+
+  // [진단용] 문자열을 사람이 읽을 수 있는 형태 + 각 글자의 문자코드로 같이 보여줌.
+  // 눈에 안 보이는 문자가 어디에 끼어있는지 콘솔에서 바로 확인하기 위한 함수.
+  function debugInspectString_(label, value) {
+    var str = String(value == null ? '' : value);
+    var codes = [];
+    for (var i = 0; i < str.length; i += 1) {
+      codes.push(str.charCodeAt(i));
+    }
+    console.log('[진단] ' + label + ' = ' + JSON.stringify(str) + ' / 문자코드: [' + codes.join(',') + ']');
+  }
+
   // CSV 전체 행 중, PROGRAM_ID와 id 컬럼이 일치하는 행 하나를 찾아 객체로 변환
   function findProgramRow(rows) {
+    console.group('[진단] findProgramRow 시작');
+    console.log('[진단] 전체 rows:', rows);
+    console.log('[진단] rows.length:', rows.length);
+
     if (rows.length === 0) {
+      console.warn('[진단] CSV에 행이 하나도 없음 (rows.length === 0) → 시트가 비어있거나 CSV 응답이 비정상입니다.');
+      console.groupEnd();
       return null;
     }
 
-    var header = rows[0].map(function (h) {
+    var rawHeader = rows[0];
+    console.log('[진단] 원본 헤더 행(rawHeader):', rawHeader);
+
+    var header = rawHeader.map(function (h) {
       return String(h || '').trim().toLowerCase();
     });
+    console.log('[진단] 정규화된 헤더(header):', JSON.stringify(header));
 
-    var idIndex = -1;
-for (var hIdx = 0; hIdx < header.length; hIdx += 1) {
-  if (header[hIdx].replace(/[^a-z]/g, '') === 'id') {
-    idIndex = hIdx;
-    break;
-  }
-}
+    // 정규화(눈에 안 보이는 문자 제거)한 헤더로도 한 번 더 찾아봄 (방어적 매칭)
+    var normalizedHeader = rawHeader.map(function (h) {
+      return normalizeForCompare_(String(h || '')).toLowerCase();
+    });
+
+    var idIndex = header.indexOf('id');
+    console.log('[진단] header.indexOf("id") 결과 idIndex:', idIndex);
 
     if (idIndex === -1) {
+      idIndex = normalizedHeader.indexOf('id');
+      console.log('[진단] 일반 매칭 실패 → 정규화 매칭으로 재시도한 idIndex:', idIndex);
+    }
+
+    if (idIndex === -1) {
+      console.error('[진단] "id" 컬럼을 헤더에서 끝내 못 찾음. 헤더 각 칸을 문자코드까지 출력합니다:');
+      rawHeader.forEach(function (h, i) {
+        debugInspectString_('헤더[' + i + ']', h);
+      });
+      console.groupEnd();
       return null;
     }
 
+    console.log('[진단] 목표 PROGRAM_ID:', JSON.stringify(PROGRAM_ID));
+    debugInspectString_('PROGRAM_ID', PROGRAM_ID);
+    var normalizedTarget = normalizeForCompare_(PROGRAM_ID);
+
     for (var r = 1; r < rows.length; r += 1) {
-      if (rows[r][idIndex] === PROGRAM_ID) {
+      var rawIdValue = rows[r][idIndex];
+      var normalizedRowId = normalizeForCompare_(rawIdValue);
+
+      console.log(
+        '[진단] ' + r + '번째 데이터 행 비교 — rows[' + r + '][' + idIndex + ']:',
+        JSON.stringify(rawIdValue),
+        '/ 정규화값:', JSON.stringify(normalizedRowId),
+        '/ 정확일치(===):', rawIdValue === PROGRAM_ID,
+        '/ 정규화일치:', normalizedRowId === normalizedTarget
+      );
+
+      if (rawIdValue !== PROGRAM_ID) {
+        debugInspectString_('rows[' + r + '][' + idIndex + ']', rawIdValue);
+      }
+
+      // 1차: 완전 일치. 2차(방어): 눈에 안 보이는 문자·공백 제거 후 일치.
+      if (rawIdValue === PROGRAM_ID || normalizedRowId === normalizedTarget) {
         var program = {};
 
         for (var c = 0; c < header.length; c += 1) {
           program[header[c]] = rows[r][c] !== undefined ? rows[r][c] : '';
         }
 
+        console.log('[진단] 매칭 성공! program 객체:', program);
+        console.groupEnd();
         return program;
       }
     }
+
+    console.warn('[진단] 모든 데이터 행을 다 확인했지만 일치하는 id를 못 찾음.');
+    console.groupEnd();
 
     return null;
   }
@@ -1102,9 +1174,15 @@ for (var hIdx = 0; hIdx < header.length; hIdx += 1) {
   }
 
   function loadProgram() {
+    console.log('%c[진단] loadProgram() 시작', 'color:#4caf50;font-weight:bold;');
+    console.log('[진단] window.PROGRAM_ID:', JSON.stringify(window.PROGRAM_ID));
+    console.log('[진단] SHEET_CSV_URL:', SHEET_CSV_URL);
+
     var root = document.querySelector('.iw-detail-card');
+    console.log('[진단] .iw-detail-card 요소:', root);
 
     if (!root) {
+      console.error('[진단] .iw-detail-card 요소를 DOM에서 찾지 못함 → 여기서 중단. 코드위젯 HTML이 페이지에 실제로 삽입됐는지 확인 필요.');
       return;
     }
 
@@ -1112,6 +1190,7 @@ for (var hIdx = 0; hIdx < header.length; hIdx += 1) {
     // window.__PREVIEW_DATA__ 에 담긴 내용을 그대로 그림 (네트워크 요청 없음).
     // 실제 12개 페이지에는 이 값이 없으므로 평소 동작에는 전혀 영향 없음.
     if (window.__PREVIEW_DATA__) {
+      console.log('[진단] window.__PREVIEW_DATA__ 감지됨 → 시트 fetch 없이 미리보기 데이터로 렌더링:', window.__PREVIEW_DATA__);
       var previewPayload = window.__PREVIEW_DATA__;
       var previewProgram = {
         title: previewPayload.title || '',
@@ -1122,46 +1201,81 @@ for (var hIdx = 0; hIdx < header.length; hIdx += 1) {
       return;
     }
 
+    if (!SHEET_CSV_URL || SHEET_CSV_URL.indexOf('여기에_') === 0) {
+      console.error('[진단] SHEET_CSV_URL이 플레이스홀더 그대로임(교체 안 됨):', SHEET_CSV_URL);
+    }
+
+    if (!PROGRAM_ID) {
+      console.error('[진단] PROGRAM_ID가 비어있음. window.PROGRAM_ID를 코드위젯에서 먼저 설정했는지, detail-widget.js보다 먼저 로드되는지 확인 필요.');
+    }
+
     var cacheBustedUrl =
       SHEET_CSV_URL +
       (SHEET_CSV_URL.indexOf('?') === -1 ? '?' : '&') +
       'cachebust=' +
       Date.now();
 
+    console.log('[진단] 실제 fetch 요청 URL:', cacheBustedUrl);
+
     fetch(cacheBustedUrl, { cache: 'no-store' })
       .then(function (response) {
+        console.log('[진단] fetch 응답 status:', response.status, '/ ok:', response.ok, '/ content-type:', response.headers.get('content-type'));
+
         if (!response.ok) {
-          throw new Error('네트워크 응답 오류');
+          throw new Error('네트워크 응답 오류 (status: ' + response.status + ')');
         }
         return response.text();
       })
       .then(function (text) {
-  text = text.replace(/^\uFEFF/, '');   // ← 이 줄 추가: 맨 앞 보이지 않는 BOM 문자 제거
-  var rows = parseCsv(text);
-console.log('파싱된 행 개수:', rows.length, rows);
-var program = findProgramRow(rows);
-console.log('찾은 program:', program);
+        console.log('[진단] 받은 텍스트 전체 길이:', text.length);
+        console.log('[진단] 받은 텍스트 앞부분 300자:', JSON.stringify(text.slice(0, 300)));
 
-if (!program || !isTruthy(program.visible)) {
-  console.log('실패 이유 — program:', program, '/ visible값:', program && program.visible);
-  renderError(root);
-  return;
-}
+        if (!text || text.trim() === '') {
+          console.error('[진단] 응답 텍스트가 비어있음. CSV 게시가 실제로는 안 됐거나, 시트에 데이터가 없는 상태일 수 있음.');
+        }
+
+        if (text.trim().slice(0, 1) === '<') {
+          console.error('[진단] 응답이 CSV가 아니라 HTML로 보임(로그인 페이지 등일 가능성). 시트 공유 설정을 "링크가 있는 모든 사용자"로 확인 필요.');
+        }
+
+        var rows = parseCsv(text);
+        console.log('[진단] parseCsv 결과 rows:', rows);
+
+        var program = findProgramRow(rows);
+
+        if (!program) {
+          console.error('[진단] findProgramRow 결과가 null → PROGRAM_ID와 일치하는 행을 CSV에서 못 찾음 (위 findProgramRow 로그 그룹 참고).');
+          renderError(root);
+          return;
+        }
+
+        console.log('[진단] program.visible 원본값:', JSON.stringify(program.visible), '/ isTruthy 결과:', isTruthy(program.visible));
+
+        if (!isTruthy(program.visible)) {
+          console.error('[진단] program은 찾았지만 visible이 참으로 인식되지 않음 → 화면 표시 안 함 처리됨. 시트에서 visible 컬럼 값을 확인 필요 (TRUE/1/Y/YES 중 하나여야 함).');
+          renderError(root);
+          return;
+        }
 
         var data = { regions: [], info: {}, subtitleLabel: '', subtitleText: '' };
 
         try {
           if (program.datajson) {
             data = JSON.parse(program.datajson);
+            console.log('[진단] dataJson 파싱 성공:', data);
+          } else {
+            console.warn('[진단] program.datajson이 비어있음. 상세 내용(지역/정보 등)이 비어있는 상태로 렌더링됩니다.');
           }
         } catch (err) {
+          console.error('[진단] dataJson JSON.parse 실패! 원본 dataJson 문자열:', program.datajson, '/ 에러:', err);
           data = { regions: [], info: {}, subtitleLabel: '', subtitleText: '' };
         }
 
+        console.log('%c[진단] 최종 renderProgram 호출', 'color:#4caf50;font-weight:bold;', { program: program, data: data });
         renderProgram(root, program, data);
       })
-     .catch(function (err) {
-        console.error('상세페이지 렌더링 실패:', err);
+      .catch(function (err) {
+        console.error('[진단] loadProgram 전체 실패 (catch 블록 도달). 에러 상세:', err);
         renderError(root);
       });
   }

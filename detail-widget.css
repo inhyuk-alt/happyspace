@@ -38,7 +38,7 @@
   --detail-bg: #fdf1dc; /* 카드 배경색 기본값(예비값). 실제로는 JS가 카테고리에 맞는 색으로 교체함 */
 
   width: 100%;
-  max-width: 900px; /* 카드 전체 최대 너비 */
+  max-width: 1200px; /* 카드 전체 최대 너비 */
   margin: 0 auto;
   padding: 0 0 32px; /* 카드 하단 여백 */
   border-radius: 18px; /* 카드 모서리 둥글기 */

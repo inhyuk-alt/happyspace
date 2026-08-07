@@ -1130,7 +1130,8 @@
         return response.text();
       })
       .then(function (text) {
-        var rows = parseCsv(text);
+  text = text.replace(/^\uFEFF/, '');   // ← 이 줄 추가: 맨 앞 보이지 않는 BOM 문자 제거
+  var rows = parseCsv(text);
 console.log('파싱된 행 개수:', rows.length, rows);
 var program = findProgramRow(rows);
 console.log('찾은 program:', program);

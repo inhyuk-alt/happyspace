@@ -592,19 +592,25 @@
       chevron.textContent = '▾';
       head.appendChild(chevron);
 
+      // [모션] 바깥(expandPanel)은 overflow:hidden + max-height 0→내용높이 로만 애니메이션하고,
+      // 실제 여백/테두리는 안쪽(expandInner)에 둠. 이렇게 나눠야 접혔을 때 padding 때문에
+      // 빈 여백이 살짝 남는 것도 막고, max-height 트랜지션이 CSS만으로 부드럽게 동작함.
       var expandPanel = document.createElement('div');
       expandPanel.className = 'iw-detail-session-card-expand';
-      expandPanel.style.display = 'none';
+
+      var expandInner = document.createElement('div');
+      expandInner.className = 'iw-detail-session-card-expand-inner';
+      expandPanel.appendChild(expandInner);
 
       if (session.detailHtml && session.detailHtml.trim()) {
         var detailEl = document.createElement('div');
         detailEl.className = 'iw-detail-session-card-detail';
         detailEl.innerHTML = session.detailHtml;
-        expandPanel.appendChild(detailEl);
+        expandInner.appendChild(detailEl);
       }
 
       if (session.year && session.month && session.day) {
-        expandPanel.appendChild(
+        expandInner.appendChild(
           buildSessionMiniCalendar_(session.year, session.month, session.day, session.calendarLabel || '강의날!')
         );
       }
@@ -616,9 +622,10 @@
 
       var toggleExpand = function () {
         var isOpen = card.classList.toggle('iw-detail-session-card--open');
-        expandPanel.style.display = isOpen ? 'block' : 'none';
-        chevron.textContent = isOpen ? '▴' : '▾';
         head.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        // 매번 실제 내용 높이를 다시 재서 그 값까지 부드럽게 트랜지션함(내용 길이가
+        // 제각각이라 고정값을 쓰면 짧은 카드는 여백이 남고 긴 카드는 잘릴 수 있음)
+        expandPanel.style.maxHeight = isOpen ? expandInner.scrollHeight + 'px' : '0px';
       };
 
       head.addEventListener('click', toggleExpand);

@@ -105,7 +105,7 @@
   // [새 메뉴 템플릿] 이 새 메뉴용 "programs" 시트(교육프로그램 시트와는 별개)를 파일 → 웹에
   // 게시(CSV)한 다음 나온 주소로 바꿔넣으세요. 시트를 재게시해서 주소가 바뀌면 여기 한 곳만
   // 고치면 이 메뉴의 모든 페이지에 전부 반영됨
-  var SHEET_CSV_URL = '여기에_새_상세페이지_시트를_CSV로_게시한_주소를_붙여넣으세요';
+  var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQSJc7a_m0m9OFAyuUY9UbUkK-BscmJKvMa1cHsHMYlWP3UBa8kNybh528WC2KpkNXsMWaILtnexIEb/pub?gid=1937397128&single=true&output=csv';
 
   // 페이지별 프로그램 ID는 각 코드위젯에서 window.PROGRAM_ID로 미리 선언해둠
   var PROGRAM_ID = window.PROGRAM_ID || '';

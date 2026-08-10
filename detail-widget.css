@@ -358,12 +358,20 @@
 
 .iw-detail-card .iw-detail-sessions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* [세션] 카드 최소 폭. 화면이 넓으면 자동으로 여러 열 */
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* [세션] 한 줄에 최대 2개까지만 */
   gap: 10px;
   /* [핵심 수정] 그리드는 기본적으로 같은 줄에 있는 칸들의 높이를 서로 맞춤(stretch).
      그래서 한 카드를 펼치면 옆 카드도 그만큼 억지로 늘어나 보이는 버그가 있었음.
-     start로 바꾸면 각 카드가 자기 내용 높이만큼만 차지하고, 옆 카드는 그대로 있음 */
+     start로 바꾸면 각 카드가 자기 내용 높이만큼만 차지하고, 옆 카드는 그대로 있음.
+     (접힌 상태 카드 크기를 통일하는 건 CSS가 아니라 JS에서 따로 처리함 — 아래
+     equalizeSessionCardHeads_ 참고. 펼침 애니메이션과 충돌하지 않게 하기 위함) */
   align-items: start;
+}
+
+@media (max-width: 480px) {
+  .iw-detail-card .iw-detail-sessions-grid {
+    grid-template-columns: 1fr; /* [세션] 화면이 너무 좁으면 1열로 */
+  }
 }
 
 .iw-detail-card .iw-detail-session-card {
@@ -384,6 +392,8 @@
   flex: 0 0 auto;
   min-width: 46px;
   text-align: center;
+  padding-right: 12px; /* [세션] 구분선과 옆 내용 사이 여백 */
+  border-right: 1px solid #ececec; /* [세션] 날짜/시간과 강의명 사이 얇은 구분선 */
 }
 
 .iw-detail-card .iw-detail-session-card-date-month {

@@ -38,7 +38,7 @@
   --detail-bg: #fdf1dc; /* 카드 배경색 기본값(예비값). 실제로는 JS가 카테고리에 맞는 색으로 교체함 */
 
   width: 100%;
-  max-width: 1200px; /* 카드 전체 최대 너비 */
+  max-width: 900px; /* 카드 전체 최대 너비 */
   margin: 0 auto;
   padding: 0 0 32px; /* 카드 하단 여백 */
   border-radius: 18px; /* 카드 모서리 둥글기 */
@@ -323,6 +323,210 @@
 }
 
 /* ------------------------------------------------------------
+   [세션 카드] 표 대신 쓰는 아코디언형 프로그램 목록
+   대분류(구분)별 그룹 + 카드형 세션 목록 + 클릭하면 펼쳐지는 상세/미니캘린더
+------------------------------------------------------------ */
+
+.iw-detail-card .iw-detail-sessions-group {
+  margin-bottom: 22px; /* [세션] 그룹(구분)끼리의 위아래 간격 */
+}
+
+.iw-detail-card .iw-detail-sessions-group:last-child {
+  margin-bottom: 0;
+}
+
+.iw-detail-card .iw-detail-sessions-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.iw-detail-card .iw-detail-sessions-group-badge {
+  background: var(--accent); /* [세션] 구분 뱃지 배경색. 그룹마다 다른 색 쓰고 싶으면 관리 화면에서 개별 지정 */
+  color: #ffffff; /* [세션] 구분 뱃지 글자색 */
+  font-size: 13px;
+  font-weight: 800;
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
+.iw-detail-card .iw-detail-sessions-group-count {
+  font-size: 13px;
+  color: #999999; /* [세션] "N개 세션" 안내 글자색 */
+}
+
+.iw-detail-card .iw-detail-sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* [세션] 카드 최소 폭. 화면이 넓으면 자동으로 여러 열 */
+  gap: 10px;
+}
+
+.iw-detail-card .iw-detail-session-card {
+  border: 1px solid #e5e5e5; /* [세션] 카드 테두리 색 */
+  border-radius: 12px;
+  background: #ffffff; /* [세션] 카드 배경색 */
+  overflow: hidden;
+}
+
+.iw-detail-card .iw-detail-session-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.iw-detail-card .iw-detail-session-card-date {
+  flex: 0 0 auto;
+  min-width: 46px;
+  text-align: center;
+}
+
+.iw-detail-card .iw-detail-session-card-date-month {
+  display: block;
+  font-size: 11px;
+  color: #999999; /* [세션] 날짜 박스 안 "8월" 글자색 */
+}
+
+.iw-detail-card .iw-detail-session-card-date-day {
+  display: block;
+  font-size: 21px; /* [세션] 날짜 박스 안 숫자 크기 */
+  font-weight: 800;
+  color: var(--accent); /* [세션] 날짜 숫자 색 (카테고리 포인트색) */
+  line-height: 1.15;
+}
+
+.iw-detail-card .iw-detail-session-card-date-time {
+  display: block;
+  font-size: 11px;
+  color: #777777; /* [세션] 날짜 박스 안 시간 글자색 */
+  margin-top: 2px;
+}
+
+.iw-detail-card .iw-detail-session-card-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.iw-detail-card .iw-detail-session-card-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #222222; /* [세션] 강의명 글자색 */
+  margin-bottom: 3px;
+}
+
+.iw-detail-card .iw-detail-session-card-desc {
+  font-size: 13px;
+  color: #666666; /* [세션] 짧은 소개글 글자색 */
+  line-height: 1.55;
+}
+
+.iw-detail-card .iw-detail-session-card-meta {
+  font-size: 11px;
+  color: #999999; /* [세션] 정원/비고 글자색 */
+  margin-top: 7px;
+}
+
+.iw-detail-card .iw-detail-session-card-chevron {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: #bbbbbb; /* [세션] 펼치기 화살표 색 */
+  margin-top: 2px;
+}
+
+.iw-detail-card .iw-detail-session-card-expand {
+  border-top: 1px solid #eeeeee; /* [세션] 펼쳐진 영역과 카드 상단을 나누는 선 */
+  padding: 16px;
+  background: #fafafa; /* [세션] 펼쳐진 영역 배경색 */
+}
+
+.iw-detail-card .iw-detail-session-card-detail {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #333333; /* [세션] 펼쳤을 때 상세 설명 글자색 */
+  margin-bottom: 14px;
+  word-break: keep-all;
+}
+
+.iw-detail-card .iw-detail-session-card-detail:last-child {
+  margin-bottom: 0;
+}
+
+/* [세션 - 미니 캘린더] 날짜가 딱 하나뿐이라, 일반 캘린더 블록보다 훨씬 눈에 띄게
+   원(circle) + 별(star) + 확대된 숫자 + 문구 캡션까지 같이 강조함 */
+.iw-detail-card .iw-detail-session-calendar {
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.iw-detail-card .iw-detail-session-calendar-month {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #555555; /* [세션 캘린더] "2026년 8월" 글자색 */
+  margin-bottom: 6px;
+}
+
+.iw-detail-card .iw-detail-session-calendar-grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.iw-detail-card .iw-detail-session-calendar-grid th {
+  font-size: 11px;
+  font-weight: 600;
+  color: #999999; /* [세션 캘린더] 요일 헤더 글자색 */
+  padding: 4px 0;
+  text-align: center;
+}
+
+.iw-detail-card .iw-detail-session-calendar-grid td {
+  font-size: 12px;
+  color: #555555; /* [세션 캘린더] 평일 날짜 글자색 */
+  text-align: center;
+  padding: 3px 0;
+}
+
+.iw-detail-card .iw-detail-session-calendar-grid td.iw-detail-sunday {
+  color: #c9793c; /* [세션 캘린더] 일요일 글자색 */
+}
+
+.iw-detail-card .iw-detail-session-calendar-highlight {
+  padding: 2px 0;
+}
+
+.iw-detail-card .iw-detail-session-calendar-highlight-circle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; /* [세션 캘린더] 하이라이트 원 크기 (일반 달력보다 큼) */
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent); /* [세션 캘린더] 하이라이트 배경색 */
+  color: #ffffff;
+  font-size: 15px; /* [세션 캘린더] 하이라이트된 날짜 숫자 크기 (평일보다 확실히 큼) */
+  font-weight: 900;
+}
+
+.iw-detail-card .iw-detail-session-calendar-star {
+  position: absolute;
+  top: -7px;
+  right: -6px;
+  font-size: 13px;
+  color: #ffb300; /* [세션 캘린더] 별 표시 색 */
+}
+
+.iw-detail-card .iw-detail-session-calendar-caption {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px; /* [세션 캘린더] "★ 8월 18일(화) · 강의날!" 캡션 크기 */
+  font-weight: 800;
+  color: var(--accent); /* [세션 캘린더] 캡션 글자색 */
+}
+
+/* ------------------------------------------------------------
    하단 정보 블록 공통 틀 — [모집인원] [주요내용] [문의] [추가정보]
    전부 "굵은 구분선 + 라벨(위) + 내용(아래)" 같은 틀을 공유함
 ------------------------------------------------------------ */
@@ -499,9 +703,8 @@
 .iw-detail-card .iw-detail-info-photo-item figcaption {
   margin-top: 6px;
   color: #666666; /* 사진 설명 글자색 */
-  font-size: 15px;
+  font-size: 13px;
   word-break: keep-all;
-  white-space: nowrap;
 }
 
 /* ------------------------------------------------------------
@@ -586,7 +789,10 @@
   padding: 9px 12px;
   color: #333333; /* [표] 본문 칸 글자색 */
   word-break: keep-all;
-  white-space: pre-line; /* [표 붙여넣기] 셀 안에 줄바꿈(엑셀/구글시트 Alt+Enter)이 있으면 그대로 줄바꿈해서 보여줌 */
+  /* [표 줄바꿈] "|" 로 표시한 자리만 detail-widget.js가 <br>로 강제 줄바꿈을 넣어줌.
+     그 외에는 순수 자동 줄바꿈만 적용되도록 normal로 둠 (예전엔 pre-line이라
+     실제 줄바꿈(Alt+Enter)까지 같이 살아나서 자동 줄바꿈과 겹쳐 어색해 보였음) */
+  white-space: normal;
 }
 
 .iw-detail-card .iw-detail-info-table[data-border="thin"] th,

@@ -105,7 +105,7 @@
   // [새 메뉴 템플릿] 이 새 메뉴용 "programs" 시트(교육프로그램 시트와는 별개)를 파일 → 웹에
   // 게시(CSV)한 다음 나온 주소로 바꿔넣으세요. 시트를 재게시해서 주소가 바뀌면 여기 한 곳만
   // 고치면 이 메뉴의 모든 페이지에 전부 반영됨
-  var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQSJc7a_m0m9OFAyuUY9UbUkK-BscmJKvMa1cHsHMYlWP3UBa8kNybh528WC2KpkNXsMWaILtnexIEb/pub?gid=1937397128&single=true&output=csv';
+  var SHEET_CSV_URL = '여기에_새_상세페이지_시트를_CSV로_게시한_주소를_붙여넣으세요';
 
   // 페이지별 프로그램 ID는 각 코드위젯에서 window.PROGRAM_ID로 미리 선언해둠
   var PROGRAM_ID = window.PROGRAM_ID || '';
@@ -434,6 +434,268 @@
   }
 
   // ------------------------------------------------------------
+  // [세션 카드] 표 대신 쓰는 아코디언형 프로그램 목록.
+  // 대분류(구분)별로 묶어서, 접힌 상태에는 날짜·시간·강의명·짧은 소개·정원·비고만 보여주고,
+  // 카드를 클릭하면 자세한 강의 내용 + 그 날짜만 하이라이트한 미니 캘린더가 펼쳐짐.
+  // ------------------------------------------------------------
+
+  // 세션 하나의 날짜만 강조한 작은 달력. 하이라이트 원 + 별 표시 + 큰 숫자 + 문구 캡션까지
+  // 다 넣어서, 여러 날짜가 있는 일반 캘린더 블록보다 훨씬 눈에 확 띄게 함.
+  function buildSessionMiniCalendar_(year, month, day, labelText) {
+    var wrap = document.createElement('div');
+    wrap.className = 'iw-detail-session-calendar';
+
+    var monthLabel = document.createElement('div');
+    monthLabel.className = 'iw-detail-session-calendar-month';
+    monthLabel.textContent = year + '년 ' + month + '월';
+    wrap.appendChild(monthLabel);
+
+    var table = document.createElement('table');
+    table.className = 'iw-detail-session-calendar-grid';
+
+    var thead = document.createElement('thead');
+    var headRow = document.createElement('tr');
+
+    for (var w = 0; w < WEEKDAY_LABELS.length; w += 1) {
+      var th = document.createElement('th');
+      th.textContent = WEEKDAY_LABELS[w];
+      headRow.appendChild(th);
+    }
+
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    var weeks = buildCalendarWeeks(year, month);
+
+    for (var weekIndex = 0; weekIndex < weeks.length; weekIndex += 1) {
+      var tr = document.createElement('tr');
+      var week = weeks[weekIndex];
+
+      for (var col = 0; col < week.length; col += 1) {
+        var td = document.createElement('td');
+        var dayValue = week[col];
+
+        if (dayValue) {
+          if (col === 0) {
+            td.classList.add('iw-detail-sunday');
+          }
+
+          if (dayValue === day) {
+            td.classList.add('iw-detail-session-calendar-highlight');
+
+            var circle = document.createElement('span');
+            circle.className = 'iw-detail-session-calendar-highlight-circle';
+            circle.textContent = dayValue;
+
+            var star = document.createElement('span');
+            star.className = 'iw-detail-session-calendar-star';
+            star.setAttribute('aria-hidden', 'true');
+            star.textContent = '★';
+            circle.appendChild(star);
+
+            td.appendChild(circle);
+          } else {
+            td.textContent = dayValue;
+          }
+        }
+
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+
+    var weekday = WEEKDAY_LABELS[new Date(year, month - 1, day).getDay()];
+    var caption = document.createElement('div');
+    caption.className = 'iw-detail-session-calendar-caption';
+    caption.textContent = '★ ' + month + '월 ' + day + '일(' + weekday + ')' + (labelText ? ' · ' + labelText : '');
+    wrap.appendChild(caption);
+
+    return wrap;
+  }
+
+  // 세션 카드 하나(접힌 상태 + 클릭하면 펼쳐지는 상세 영역)
+  function buildSessionCard_(session) {
+    var card = document.createElement('div');
+    card.className = 'iw-detail-session-card';
+
+    var head = document.createElement('div');
+    head.className = 'iw-detail-session-card-head';
+
+    var dateBox = document.createElement('div');
+    dateBox.className = 'iw-detail-session-card-date';
+
+    if (session.month) {
+      var monthEl = document.createElement('span');
+      monthEl.className = 'iw-detail-session-card-date-month';
+      monthEl.textContent = session.month + '월';
+      dateBox.appendChild(monthEl);
+    }
+
+    if (session.day) {
+      var dayEl = document.createElement('span');
+      dayEl.className = 'iw-detail-session-card-date-day';
+      dayEl.textContent = session.day;
+      dateBox.appendChild(dayEl);
+    }
+
+    if (session.time) {
+      var timeEl = document.createElement('span');
+      timeEl.className = 'iw-detail-session-card-date-time';
+      timeEl.textContent = session.time;
+      dateBox.appendChild(timeEl);
+    }
+
+    head.appendChild(dateBox);
+
+    var body = document.createElement('div');
+    body.className = 'iw-detail-session-card-body';
+
+    if (session.title) {
+      var titleEl = document.createElement('div');
+      titleEl.className = 'iw-detail-session-card-title';
+      titleEl.textContent = session.title;
+      body.appendChild(titleEl);
+    }
+
+    if (session.shortDesc) {
+      var descEl = document.createElement('div');
+      descEl.className = 'iw-detail-session-card-desc';
+      descEl.textContent = session.shortDesc;
+      body.appendChild(descEl);
+    }
+
+    var metaParts = [];
+    if (session.capacity) metaParts.push(session.capacity);
+    if (session.note) metaParts.push(session.note);
+
+    if (metaParts.length > 0) {
+      var metaEl = document.createElement('div');
+      metaEl.className = 'iw-detail-session-card-meta';
+      metaEl.textContent = metaParts.join(' · ');
+      body.appendChild(metaEl);
+    }
+
+    head.appendChild(body);
+
+    var hasDetail = (session.detailHtml && session.detailHtml.trim()) ||
+      (session.year && session.month && session.day);
+
+    if (hasDetail) {
+      var chevron = document.createElement('span');
+      chevron.className = 'iw-detail-session-card-chevron';
+      chevron.setAttribute('aria-hidden', 'true');
+      chevron.textContent = '▾';
+      head.appendChild(chevron);
+
+      var expandPanel = document.createElement('div');
+      expandPanel.className = 'iw-detail-session-card-expand';
+      expandPanel.style.display = 'none';
+
+      if (session.detailHtml && session.detailHtml.trim()) {
+        var detailEl = document.createElement('div');
+        detailEl.className = 'iw-detail-session-card-detail';
+        detailEl.innerHTML = session.detailHtml;
+        expandPanel.appendChild(detailEl);
+      }
+
+      if (session.year && session.month && session.day) {
+        expandPanel.appendChild(
+          buildSessionMiniCalendar_(session.year, session.month, session.day, session.calendarLabel || '강의날!')
+        );
+      }
+
+      head.style.cursor = 'pointer';
+      head.setAttribute('role', 'button');
+      head.setAttribute('tabindex', '0');
+      head.setAttribute('aria-expanded', 'false');
+
+      var toggleExpand = function () {
+        var isOpen = card.classList.toggle('iw-detail-session-card--open');
+        expandPanel.style.display = isOpen ? 'block' : 'none';
+        chevron.textContent = isOpen ? '▴' : '▾';
+        head.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      };
+
+      head.addEventListener('click', toggleExpand);
+      head.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleExpand();
+        }
+      });
+
+      card.appendChild(head);
+      card.appendChild(expandPanel);
+    } else {
+      card.appendChild(head);
+    }
+
+    return card;
+  }
+
+  // [세션 카드] 요소 하나(대분류별 그룹 여러 개) 전체 렌더링
+  function buildSessionsElement(element) {
+    var groups = (element.groups || []).filter(function (g) {
+      return g && (g.sessions || []).some(function (s) { return s && (s.title || '').trim(); });
+    });
+
+    if (groups.length === 0) {
+      return null;
+    }
+
+    var wrap = document.createElement('div');
+    wrap.className = 'iw-detail-sessions';
+
+    groups.forEach(function (group) {
+      var sessions = (group.sessions || []).filter(function (s) { return s && (s.title || '').trim(); });
+
+      if (sessions.length === 0) {
+        return;
+      }
+
+      var groupWrap = document.createElement('div');
+      groupWrap.className = 'iw-detail-sessions-group';
+
+      var header = document.createElement('div');
+      header.className = 'iw-detail-sessions-group-header';
+
+      if (group.name) {
+        var badge = document.createElement('span');
+        badge.className = 'iw-detail-sessions-group-badge';
+        badge.textContent = group.name;
+        if (group.badgeColor) {
+          badge.style.background = group.badgeColor;
+        }
+        header.appendChild(badge);
+      }
+
+      var count = document.createElement('span');
+      count.className = 'iw-detail-sessions-group-count';
+      count.textContent = sessions.length + '개 세션';
+      header.appendChild(count);
+
+      groupWrap.appendChild(header);
+
+      var grid = document.createElement('div');
+      grid.className = 'iw-detail-sessions-grid';
+
+      sessions.forEach(function (session) {
+        grid.appendChild(buildSessionCard_(session));
+      });
+
+      groupWrap.appendChild(grid);
+      wrap.appendChild(groupWrap);
+    });
+
+    return wrap;
+  }
+
+  // ------------------------------------------------------------
   // [지역] 지역(장소 및 일정) 블록 렌더링
   // ------------------------------------------------------------
 
@@ -736,6 +998,10 @@
 
     if (element.type === 'button') {
       return buildButtonElement(element);
+    }
+
+    if (element.type === 'sessions') {
+      return buildSessionsElement(element);
     }
 
     return null;

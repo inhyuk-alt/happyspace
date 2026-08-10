@@ -611,7 +611,7 @@
 
       if (session.year && session.month && session.day) {
         expandInner.appendChild(
-          buildSessionMiniCalendar_(session.year, session.month, session.day, session.calendarLabel || '강의날!')
+          buildSessionMiniCalendar_(session.year, session.month, session.day, session.calendarLabel || '')
         );
       }
 
@@ -646,6 +646,30 @@
   }
 
   // [세션 카드] 요소 하나(대분류별 그룹 여러 개) 전체 렌더링
+  // [카드 크기 통일] 한 그룹(grid) 안의 카드들 중 "접힌 상태(head)"가 가장 큰 카드를 찾아,
+  // 그 높이로 나머지 카드의 head도 똑같이 맞춰줌. 펼쳐진 상태(expand)는 손대지 않음 —
+  // 펼침 애니메이션은 이미 max-height로 별도 처리하고 있어서 여기서 높이를 강제로 만지면
+  // 애니메이션이 어긋날 수 있음.
+  function equalizeSessionCardHeads_(grid) {
+    var heads = grid.querySelectorAll('.iw-detail-session-card-head');
+
+    if (heads.length < 2) {
+      return;
+    }
+
+    // 먼저 전부 auto로 되돌려서, 내용이 바뀐 뒤(재실행) 예전 높이가 남아있지 않게 함
+    heads.forEach(function (head) { head.style.minHeight = ''; });
+
+    var maxHeight = 0;
+    heads.forEach(function (head) {
+      maxHeight = Math.max(maxHeight, head.offsetHeight);
+    });
+
+    if (maxHeight > 0) {
+      heads.forEach(function (head) { head.style.minHeight = maxHeight + 'px'; });
+    }
+  }
+
   function buildSessionsElement(element) {
     var groups = (element.groups || []).filter(function (g) {
       return g && (g.sessions || []).some(function (s) { return s && (s.title || '').trim(); });
@@ -697,6 +721,13 @@
 
       groupWrap.appendChild(grid);
       wrap.appendChild(groupWrap);
+
+      // [카드 크기 통일] 접힌 상태(head)만 가장 큰 카드 기준으로 높이를 맞춤.
+      // CSS grid의 기본 stretch를 그대로 쓰면 카드를 "펼칠 때"도 옆 카드가 같이
+      // 늘어나 보이는 문제가 생겨서(위 align-items:start로 그건 막아둠), 대신
+      // 접힌 상태의 높이 맞추기는 JS로 따로 처리함. 실제 화면에 붙은 뒤에야 높이를
+      // 잴 수 있어서 requestAnimationFrame으로 한 박자 늦춰서 실행함.
+      requestAnimationFrame(function () { equalizeSessionCardHeads_(grid); });
     });
 
     return wrap;

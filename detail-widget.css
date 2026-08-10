@@ -360,6 +360,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* [세션] 카드 최소 폭. 화면이 넓으면 자동으로 여러 열 */
   gap: 10px;
+  /* [핵심 수정] 그리드는 기본적으로 같은 줄에 있는 칸들의 높이를 서로 맞춤(stretch).
+     그래서 한 카드를 펼치면 옆 카드도 그만큼 억지로 늘어나 보이는 버그가 있었음.
+     start로 바꾸면 각 카드가 자기 내용 높이만큼만 차지하고, 옆 카드는 그대로 있음 */
+  align-items: start;
 }
 
 .iw-detail-card .iw-detail-session-card {
@@ -435,6 +439,12 @@
 }
 
 .iw-detail-card .iw-detail-session-card-expand {
+  max-height: 0; /* [세션 - 모션] 평소엔 접혀서 높이 0. JS가 펼칠 때 실제 내용 높이로 바꿔줌 */
+  overflow: hidden;
+  transition: max-height 0.35s ease; /* [세션 - 모션] 펼침/접힘 애니메이션 속도 */
+}
+
+.iw-detail-card .iw-detail-session-card-expand-inner {
   border-top: 1px solid #eeeeee; /* [세션] 펼쳐진 영역과 카드 상단을 나누는 선 */
   padding: 16px;
   background: #fafafa; /* [세션] 펼쳐진 영역 배경색 */
@@ -450,6 +460,16 @@
 
 .iw-detail-card .iw-detail-session-card-detail:last-child {
   margin-bottom: 0;
+}
+
+/* [세션 - 모션] 화살표도 방향과 함께 부드럽게 회전 */
+.iw-detail-card .iw-detail-session-card-chevron {
+  transition: transform 0.25s ease;
+  display: inline-block;
+}
+
+.iw-detail-card .iw-detail-session-card--open .iw-detail-session-card-chevron {
+  transform: rotate(180deg);
 }
 
 /* [세션 - 미니 캘린더] 날짜가 딱 하나뿐이라, 일반 캘린더 블록보다 훨씬 눈에 띄게

@@ -116,22 +116,24 @@
   // (카테고리 색상표, 텍스트 블록 글자크기/줄간격 값이 여기 다 들어있음)
   /* === LAYOUT_SETTINGS_START === */
   var CATEGORY_STYLE_MAP = {
-    '예시 카테고리': { bg: '#eeeeee', line: '#999999', text: '#666666' }
-  };
+  '강연': { bg: '#fff3d0', line: '#C28E4C', text: '#2C2A29' },
+  '로망스쿨': { bg: '#e8f8f8', line: '#2F3640', text: '#A5C4D4' },
+  '행복아지트': { bg: '#fec5e8', line: '#18a8f1', text: '#ffffff' }
+};
 
-  var TEXT_FONT_SIZE_MAP = {
-    small: '14px',
-    medium: '16px',
-    large: '19px',
-    xlarge: '22px'
-  };
+var TEXT_FONT_SIZE_MAP = {
+  small: '14px',
+  medium: '16px',
+  large: '19px',
+  xlarge: '22px'
+};
 
-  var TEXT_LINE_HEIGHT_MAP = {
-    tight: '1.4',
-    normal: '1.7',
-    wide: '2.0',
-    wider: '2.4'
-  };
+var TEXT_LINE_HEIGHT_MAP = {
+  wider: '2.4',
+  normal: '1.7',
+  wide: '2.0',
+  tight: '1.4'
+};
   /* === LAYOUT_SETTINGS_END === */
 
   var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];

@@ -129,8 +129,8 @@ var TEXT_FONT_SIZE_MAP = {
 };
 
 var TEXT_LINE_HEIGHT_MAP = {
-  wider: '2.4',
   normal: '1.7',
+  wider: '2.4',
   wide: '2.0',
   tight: '1.4'
 };
@@ -607,11 +607,36 @@ var TEXT_LINE_HEIGHT_MAP = {
       if (session.detailHtml && session.detailHtml.trim()) {
         var detailEl = document.createElement('div');
         detailEl.className = 'iw-detail-session-card-detail';
+        // [텍스트 블록과 동일하게] 글자 크기·줄간격을 세션마다 지정한 값으로 적용
+        detailEl.style.fontSize = TEXT_FONT_SIZE_MAP[session.detailFontSize] || '';
+        detailEl.style.lineHeight = TEXT_LINE_HEIGHT_MAP[session.detailLineHeight] || '';
         detailEl.innerHTML = session.detailHtml;
         expandInner.appendChild(detailEl);
       }
 
+      // [세부 항목] 준비물/재료비 등, "장소 및 일정"의 세부항목과 완전히 같은 방식으로 표시
+      var sessionDetailRows = session.detailRows || [];
+
+      if (sessionDetailRows.length > 0) {
+        var sessionDetailRowsWrap = document.createElement('div');
+        sessionDetailRowsWrap.className = 'iw-detail-region-details iw-detail-session-card-detail-rows';
+
+        for (var sdr = 0; sdr < sessionDetailRows.length; sdr += 1) {
+          sessionDetailRowsWrap.appendChild(createDetailRow(sessionDetailRows[sdr]));
+        }
+
+        expandInner.appendChild(sessionDetailRowsWrap);
+      }
+
       if (session.year && session.month && session.day) {
+        // [구분선] 강의 내용(+세부 항목)과 캘린더 사이 — 위에 아무것도 없으면(강의 내용도
+        // 세부 항목도 없이 캘린더만 있는 경우) 굳이 안 그림
+        if ((session.detailHtml && session.detailHtml.trim()) || sessionDetailRows.length > 0) {
+          var calendarDivider = document.createElement('div');
+          calendarDivider.className = 'iw-detail-session-card-divider';
+          expandInner.appendChild(calendarDivider);
+        }
+
         expandInner.appendChild(
           buildSessionMiniCalendar_(session.year, session.month, session.day, session.calendarLabel || '')
         );

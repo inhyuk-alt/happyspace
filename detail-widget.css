@@ -196,7 +196,7 @@
 
 .iw-detail-card .iw-detail-region-detail {
   display: flex;
-  align-items: stretch; /* [수정] 라벨 오른쪽 구분선이 내용 높이(여러 줄이어도)만큼 자연스럽게 늘어나도록 */
+  align-items: center; /* [지역] 배지가 줄 수와 상관없이 항상 내용의 세로 정중앙에 위치 */
   gap: 10px;
   font-size: 15px;
   line-height: 1.5;
@@ -216,16 +216,16 @@
 }
 
 .iw-detail-card .iw-detail-region-detail-label {
-  flex: 0 0 64px; /* [라벨] 글자 수와 상관없이 항상 같은 폭 — 구분선 위치가 행마다 들쭉날쭉하지 않게 */
-  width: 64px;
-  display: inline-flex;
+  flex: 0 0 auto;
+  display: flex; /* 안의 글자(span)들을 균등 배분하기 위해 flex로 전환 */
   align-items: center;
-  justify-content: center; /* [수정] 고정 폭 안에서 글자 수에 맞춰 항상 가운데 정렬 */
-  padding-right: 10px; /* [라벨] 구분선과 글자 사이 여백 */
-  border-right: 1px solid #d8d8d8; /* [라벨] 배경 대신 오른쪽에 얇은 구분선만 */
-  color: var(--accent); /* [라벨] 배경 없이, 강조색 글자로만 표시 */
-  font-weight: 600; /* [라벨] 프리텐다드 폰트가 굵게(800) 쓰면 뭉개져 보여서 낮춤 */
-  font-size: 13px;
+  justify-content: space-between; /* [라벨] 글자 수가 적어도 라벨 폭 전체에 균등하게 퍼짐 */
+  padding: 5px 12px;
+  border-radius: 999px; /* [지역] 세부항목 라벨(날짜/시간 등) 알약형 배지 모양 */
+  background: var(--accent); /* [지역] 라벨 배경색 = 카테고리 포인트색 */
+  color: #ffffff; /* [지역] 라벨 글자색 고정 — 파스텔 배경 위에서 흰 글자보다 대비가 훨씬 좋음 */
+  font-weight: 800;
+  font-size: 15px;
   white-space: nowrap;
 }
 
@@ -241,6 +241,31 @@
   /* [수정] 예전엔 nowrap이라 "|" 없이 긴 문장 하나를 통째로 넣으면 줄바꿈이 안 되고
      카드 밖으로 잘려나가는 문제가 있었음. 이제는 자연스럽게 줄바꿈되고, "|"로 나눈
      항목(날짜 등)은 word-break: keep-all이 이미 그 안에서 어색하게 안 끊기게 막아줌 */
+}
+
+/* ------------------------------------------------------------
+   [세션 카드 - 세부 항목만 별도 스타일] 위 iw-detail-region-detail-label은
+   "장소 및 일정"에서는 원래 알약형 배지 디자인 그대로 유지하고, 세션 카드
+   안(iw-detail-session-card-detail-rows)에서만 아래 스타일로 덮어씀 —
+   배경 없이 구분선 + 고정폭 안에서 글자 벌어짐(예: "준비물" / "비   고")
+------------------------------------------------------------ */
+.iw-detail-session-card-detail-rows .iw-detail-region-detail {
+  align-items: stretch; /* [세션] 라벨 오른쪽 구분선이 내용 높이(여러 줄이어도)만큼 자연스럽게 늘어나도록 */
+}
+
+.iw-detail-session-card-detail-rows .iw-detail-region-detail-label {
+  flex: 0 0 64px; /* [세션] 글자 수와 상관없이 항상 같은 폭 — 구분선 위치가 행마다 들쭉날쭉하지 않게 */
+  width: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* [세션] 고정 폭 안에서 글자 수만큼 균등하게 퍼짐 (준비물 / 비　고) */
+  padding: 0 10px 0 0;
+  border-radius: 0;
+  background: transparent; /* [세션] 배경 없이 */
+  border-right: 1px solid #d8d8d8; /* [세션] 배경 대신 오른쪽에 얇은 구분선만 */
+  color: var(--accent);
+  font-weight: 600; /* [세션] 프리텐다드가 이 크기에서 800이면 뭉개져 보여서 낮춤 */
+  font-size: 13px;
 }
 
 .iw-detail-card .iw-detail-region-rule {

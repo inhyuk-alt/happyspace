@@ -472,6 +472,18 @@
   margin-bottom: 0;
 }
 
+/* [세션 - 세부 항목] 준비물/재료비 등. "장소 및 일정" 세부항목과 같은 스타일(iw-detail-region-details)을
+   그대로 쓰되, 세션 카드 펼침 영역 안에서는 위아래 여백만 살짝 조정 */
+.iw-detail-card .iw-detail-session-card-detail-rows {
+  margin: 0 0 14px;
+}
+
+/* [세션 - 구분선] 강의 내용(+세부 항목)과 아래 미니 캘린더 사이 */
+.iw-detail-card .iw-detail-session-card-divider {
+  border-top: 1px dashed #dddddd; /* [세션] 구분선 색·굵기 */
+  margin: 0 0 16px;
+}
+
 /* [세션 - 모션] 화살표도 방향과 함께 부드럽게 회전 */
 .iw-detail-card .iw-detail-session-card-chevron {
   transition: transform 0.25s ease;

@@ -129,11 +129,18 @@ var TEXT_FONT_SIZE_MAP = {
 };
 
 var TEXT_LINE_HEIGHT_MAP = {
-  normal: '1.7',
   wider: '2.4',
+  normal: '1.7',
   wide: '2.0',
   tight: '1.4'
 };
+
+  var TEXT_LINE_HEIGHT_MAP = {
+    tight: '1.4',
+    normal: '1.7',
+    wide: '2.0',
+    wider: '2.4'
+  };
   /* === LAYOUT_SETTINGS_END === */
 
   var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -608,8 +615,13 @@ var TEXT_LINE_HEIGHT_MAP = {
         var detailEl = document.createElement('div');
         detailEl.className = 'iw-detail-session-card-detail';
         // [텍스트 블록과 동일하게] 글자 크기·줄간격을 세션마다 지정한 값으로 적용
-        detailEl.style.fontSize = TEXT_FONT_SIZE_MAP[session.detailFontSize] || '';
-        detailEl.style.lineHeight = TEXT_LINE_HEIGHT_MAP[session.detailLineHeight] || '';
+        // [버그 수정] 관리 화면 드롭다운은 값이 비어있으면 "보통"을 기본으로 보여주는데,
+        // 여기서도 똑같이 기본값을 적용해야 함. 이 기능이 생기기 전에 저장된 세션은
+        // detailFontSize 값 자체가 없어서(undefined), 기본값 보정 없이는 CSS의 예전
+        // 크기(13px)로 표시되는 반면, 관리 화면에는 "보통"이 선택된 것처럼 보이는
+        // 불일치가 있었음.
+        detailEl.style.fontSize = TEXT_FONT_SIZE_MAP[session.detailFontSize || 'medium'] || '';
+        detailEl.style.lineHeight = TEXT_LINE_HEIGHT_MAP[session.detailLineHeight || 'normal'] || '';
         detailEl.innerHTML = session.detailHtml;
         expandInner.appendChild(detailEl);
       }

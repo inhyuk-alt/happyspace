@@ -196,7 +196,7 @@
 
 .iw-detail-card .iw-detail-region-detail {
   display: flex;
-  align-items: center; /* [지역] 배지가 줄 수와 상관없이 항상 내용의 세로 정중앙에 위치 */
+  align-items: stretch; /* [수정] 라벨 오른쪽 구분선이 내용 높이(여러 줄이어도)만큼 자연스럽게 늘어나도록 */
   gap: 10px;
   font-size: 15px;
   line-height: 1.5;
@@ -217,15 +217,13 @@
 
 .iw-detail-card .iw-detail-region-detail-label {
   flex: 0 0 auto;
-  display: flex; /* 안의 글자(span)들을 균등 배분하기 위해 flex로 전환 */
+  display: inline-flex; /* [수정] 더 이상 알약형 배경이 아니라서 space-between으로 글자 벌릴 필요 없음 */
   align-items: center;
-  justify-content: space-between; /* [라벨] 글자 수가 적어도 라벨 폭 전체에 균등하게 퍼짐 */
-  padding: 5px 12px;
-  border-radius: 999px; /* [지역] 세부항목 라벨(날짜/시간 등) 알약형 배지 모양 */
-  background: var(--accent); /* [지역] 라벨 배경색 = 카테고리 포인트색 */
-  color: #ffffff; /* [지역] 라벨 글자색 고정(검정) — 파스텔 배경 위에서 흰 글자보다 대비가 훨씬 좋음 */
+  padding-right: 10px; /* [라벨] 구분선과 글자 사이 여백 */
+  border-right: 1px solid #d8d8d8; /* [라벨] 배경 대신 오른쪽에 얇은 구분선만 */
+  color: var(--accent); /* [라벨] 배경 없이, 굵은 강조색 글자로만 표시 */
   font-weight: 800;
-  font-size: 15px;
+  font-size: 13px; /* [라벨] 크기 축소 (기존 15px → 13px) */
   white-space: nowrap;
 }
 
@@ -238,7 +236,9 @@
 }
 
 .iw-detail-card .iw-detail-region-detail-chunk {
-  white-space: nowrap; /* "7월 29일(수)"처럼 "|" 로 나뉜 항목 하나는 절대 중간에서 안 쪼개짐 */
+  /* [수정] 예전엔 nowrap이라 "|" 없이 긴 문장 하나를 통째로 넣으면 줄바꿈이 안 되고
+     카드 밖으로 잘려나가는 문제가 있었음. 이제는 자연스럽게 줄바꿈되고, "|"로 나눈
+     항목(날짜 등)은 word-break: keep-all이 이미 그 안에서 어색하게 안 끊기게 막아줌 */
 }
 
 .iw-detail-card .iw-detail-region-rule {
@@ -436,8 +436,8 @@
 }
 
 .iw-detail-card .iw-detail-session-card-meta {
-  font-size: 11px;
-  color: #999999; /* [세션] 정원/비고 글자색 */
+  font-size: 13px; /* [세션] 정원/강사 글자 크기 (11px → 13px로 키움) */
+  color: #888888; /* [세션] 정원/강사 글자색 */
   margin-top: 7px;
 }
 

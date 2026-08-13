@@ -216,14 +216,16 @@
 }
 
 .iw-detail-card .iw-detail-region-detail-label {
-  flex: 0 0 auto;
-  display: inline-flex; /* [수정] 더 이상 알약형 배경이 아니라서 space-between으로 글자 벌릴 필요 없음 */
+  flex: 0 0 64px; /* [라벨] 글자 수와 상관없이 항상 같은 폭 — 구분선 위치가 행마다 들쭉날쭉하지 않게 */
+  width: 64px;
+  display: inline-flex;
   align-items: center;
+  justify-content: center; /* [수정] 고정 폭 안에서 글자 수에 맞춰 항상 가운데 정렬 */
   padding-right: 10px; /* [라벨] 구분선과 글자 사이 여백 */
   border-right: 1px solid #d8d8d8; /* [라벨] 배경 대신 오른쪽에 얇은 구분선만 */
-  color: var(--accent); /* [라벨] 배경 없이, 굵은 강조색 글자로만 표시 */
-  font-weight: 800;
-  font-size: 13px; /* [라벨] 크기 축소 (기존 15px → 13px) */
+  color: var(--accent); /* [라벨] 배경 없이, 강조색 글자로만 표시 */
+  font-weight: 600; /* [라벨] 프리텐다드 폰트가 굵게(800) 쓰면 뭉개져 보여서 낮춤 */
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -424,7 +426,7 @@
 
 .iw-detail-card .iw-detail-session-card-title {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700; /* [세션] 800이면 프리텐다드 폰트가 이 크기에서 뭉개져 보여서 낮춤 */
   color: #222222; /* [세션] 강의명 글자색 */
   margin-bottom: 3px;
 }

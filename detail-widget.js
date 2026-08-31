@@ -118,7 +118,8 @@
   var CATEGORY_STYLE_MAP = {
   '강연': { bg: '#fff3d0', line: '#C28E4C', text: '#2C2A29' },
   '로망스쿨': { bg: '#e8f8f8', line: '#2F3640', text: '#A5C4D4' },
-  '행복아지트': { bg: '#fec5e8', line: '#18a8f1', text: '#3e3e3e' }
+  '행복아지트': { bg: '#fec5e8', line: '#18a8f1', text: '#3e3e3e' },
+  '재무설계': { bg: '#D3D1F6', line: '#6E69DA' }
 };
 
 var TEXT_FONT_SIZE_MAP = {
@@ -129,18 +130,11 @@ var TEXT_FONT_SIZE_MAP = {
 };
 
 var TEXT_LINE_HEIGHT_MAP = {
-  wider: '2.4',
   normal: '1.7',
+  wider: '2.4',
   wide: '2.0',
   tight: '1.4'
 };
-
-  var TEXT_LINE_HEIGHT_MAP = {
-    tight: '1.4',
-    normal: '1.7',
-    wide: '2.0',
-    wider: '2.4'
-  };
   /* === LAYOUT_SETTINGS_END === */
 
   var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];

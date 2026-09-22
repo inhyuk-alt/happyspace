@@ -371,7 +371,7 @@
 
 .iw-detail-card .iw-detail-sessions-group-badge {
   background: var(--accent); /* [세션] 구분 뱃지 배경색. 그룹마다 다른 색 쓰고 싶으면 관리 화면에서 개별 지정 */
-  color: #ffffff; /* [세션] 구분 뱃지 글자색 */
+  color: ##3e3e3e; /* [세션] 구분 뱃지 글자색 */
   font-size: 13px;
   font-weight: 800;
   padding: 5px 14px;
